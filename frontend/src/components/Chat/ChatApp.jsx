@@ -2,8 +2,11 @@ import io from "socket.io-client";
 import { useState } from "react";
 import Chat from "./Chat";
 import Style from "./css/style.css";
+import { SOCKET_URL } from "../../services/api";
 
-const socket = io.connect("http://localhost:5001");
+// Use the SOCKET_URL from our centralized service
+console.log("Chat connecting to socket server:", SOCKET_URL);
+const socket = io.connect(SOCKET_URL);
 
 function App(props) {
   const [username, setUsername] = useState("");

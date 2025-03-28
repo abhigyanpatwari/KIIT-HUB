@@ -42,7 +42,10 @@ app.use(cors({
     'http://localhost:8080',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',  // Vite default
-    'http://192.168.1.2:3000'  // Add your local IP if needed
+    'http://192.168.1.2:3000',  // Add your local IP if needed
+    'https://kiithub-frontend.vercel.app',
+    'https://kiithub.vercel.app',
+    'https://kiit-hub.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],

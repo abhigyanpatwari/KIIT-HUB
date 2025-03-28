@@ -50,7 +50,10 @@ const startServer = async () => {
           'http://localhost:3000', 
           'http://localhost:3001',
           'http://localhost:3003', 
-          'http://localhost:3004'
+          'http://localhost:3004',
+          'https://kiithub-frontend.vercel.app',
+          'https://kiithub.vercel.app',
+          'https://kiit-hub.vercel.app'
         ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         credentials: true,

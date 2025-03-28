@@ -4,9 +4,10 @@ import HeaderSearch from './HeaderSearch';
 import { motion } from 'framer-motion';
 import { useTheme } from '../Contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { API_URL, apiCall } from '../services/api';
 
-// Backend URL - adjust this to match your backend server
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+// Use our centralized API URL
+console.log('Home component using API URL:', API_URL);
 
 // Helper function to normalize MongoDB IDs for comparison
 const normalizeId = (id) => {
@@ -64,14 +65,8 @@ const Home = () => {
   // Fetch current user data
   const fetchUserData = async () => {
     try {
-      // Use the absolute backend URL
-      const res = await fetch(`${BACKEND_URL}/current-user`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+      const res = await apiCall('/current-user', {
+        method: 'GET'
       });
 
       if (res.status === 401) {
@@ -112,13 +107,8 @@ const Home = () => {
     try {
       // First try the /db endpoint
       console.log('Attempting to fetch from /db endpoint');
-      const res = await fetch(`${BACKEND_URL}/db`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+      const res = await apiCall('/db', {
+        method: 'GET'
       });
       
       // If /db fails, try fetching directly from a known working endpoint as a fallback
@@ -128,13 +118,8 @@ const Home = () => {
         // If the user is authenticated, we can try to fetch all listings through a different route
         // Note: We'll try even if currentUser is null as the endpoint doesn't require authentication
         console.log('Attempting to fetch from /profilec/all-users endpoint');
-        const userRes = await fetch(`${BACKEND_URL}/profilec/all-users`, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
+        const userRes = await apiCall('/profilec/all-users', {
+          method: 'GET'
         });
         
         if (userRes.ok) {
@@ -346,13 +331,8 @@ const Home = () => {
 
     try {
       // First check if user is still authenticated
-      const checkUserRes = await fetch(`${BACKEND_URL}/current-user`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+      const checkUserRes = await apiCall('/current-user', {
+        method: 'GET'
       });
       
       if (!checkUserRes.ok) {
@@ -379,55 +359,126 @@ const Home = () => {
         seller_id: sellerId
       });
       
-      // First test the wishlist endpoint with a GET request
+      // Test the wishlist endpoint
       console.log('Testing wishlist endpoint...');
       try {
-        const testResponse = await fetch(`${BACKEND_URL}/wishlist-test`, {
-          method: 'GET',
-          credentials: 'include',
+        const testResponse = await apiCall('/wishlist-test', {
+          method: 'GET'
         });
         
-        if (!testResponse.ok) {
-          console.error('Wishlist test endpoint failed!', testResponse.status);
+        // More apiCall updates
+        const response = await apiCall('/wishlist/add', {
+          method: 'POST',
+          body: JSON.stringify({
+            itemId: itemId,
+            userId: userId
+          })
+        });
+        
+        // Fetch current user details for the buyer
+        try {
+          const userResponse = await apiCall(`/profilec/user/${userId}`);
+          const userData = await userResponse.json();
+          buyerName = userData.name || 'Not available';
+          buyerEmail = userData.email_id || null;
+        } catch (err) {
+          console.error('Error fetching buyer details:', err);
+        }
+        
+        // Fetch seller details
+        try {
+          console.log(`Fetching seller details for ID: ${sellerId}`);
+          const sellerResponse = await apiCall(`/profilec/user/${sellerId}`);
+          const sellerData = await sellerResponse.json();
+          
+          // Get seller email if available
+          if (sellerData && sellerData.email_id) {
+            sellerEmail = sellerData.email_id;
+            sellerName = sellerData.name || 'Not available';
+          } else {
+            // Try another endpoint if the first one doesn't have the email
+            try {
+              const altSellerResponse = await apiCall(`/db/${sellerId}`);
+              const altSellerData = await altSellerResponse.json();
+              
+              if (altSellerData && altSellerData.email_id) {
+                sellerEmail = altSellerData.email_id;
+                sellerName = altSellerData.name || 'Not available';
+              }
+            } catch (err) {
+              console.error('Error fetching seller through alternative endpoint:', err);
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching seller details:', err);
+        }
+        
+        // Send purchase notification
+        const response = await apiCall('/purchase/notify', {
+          method: 'POST',
+          body: JSON.stringify({
+            buyer: {
+              name: buyerName,
+              email: buyerEmail,
+              id: userId
+            },
+            seller: {
+              name: sellerName,
+              email: sellerEmail,
+              id: sellerId
+            },
+            item: {
+              name: selectedItem.item_name,
+              id: selectedItem._id,
+              price: selectedItem.item_price
+            }
+          })
+        });
+
+        // Process response
+        const result = await response.json();
+        if (response.ok) {
+          // Successful API call
+          setShowConfirmModal(false);
+          
+          // Store purchase information in localStorage
+          const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+          purchases.push({
+            orderRef: result.orderRef,
+            itemId: selectedItem._id,
+            itemName: selectedItem.item_name,
+            itemPrice: selectedItem.item_price,
+            sellerId: selectedItem.sellerId,
+            sellerName,
+            purchaseDate: new Date().toISOString(),
+          });
+          localStorage.setItem('purchases', JSON.stringify(purchases));
+          
+          // Show success message with appropriate details based on which emails were sent
+          let successMessage = 'Purchase successful! ';
+          if (result.buyerEmailSent && result.sellerEmailSent) {
+            successMessage += 'Confirmation emails sent to both you and the seller.';
+          } else if (result.buyerEmailSent) {
+            successMessage += `Confirmation email sent to you at ${buyerEmail}.`;
+            toast.warning('Seller notification email could not be sent.', { position: 'bottom-center' });
+          } else if (result.sellerEmailSent) {
+            successMessage += 'Seller has been notified of your purchase.';
+            toast.warning('Buyer confirmation email could not be sent.', { position: 'bottom-center' });
+          } else {
+            successMessage += 'However, email notifications could not be sent.';
+            toast.warning('Email notifications failed. Please contact support.', { position: 'bottom-center' });
+          }
+          
+          toast.success(successMessage, { position: 'bottom-center' });
+          
+          // Refresh the items list to reflect the change
+          initializeData();
         } else {
-          const testData = await testResponse.json();
-          console.log('Wishlist test endpoint response:', testData);
+          // API call failed
+          toast.error(`Purchase failed: ${result.message || 'Unknown error'}`, { position: 'bottom-center' });
         }
       } catch (testError) {
         console.error('Error testing wishlist endpoint:', testError);
-      }
-      
-      // Try the wishlist endpoint from the app.ts file
-      const response = await fetch(`${BACKEND_URL}/wishlist/add`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          item_id: itemId,
-          seller_id: sellerId
-        }),
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        // Try to parse error response
-        try {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to save item');
-        } catch (parseError) {
-          // If parsing fails, use the HTTP status text
-          throw new Error(`Server error (${response.status}): ${response.statusText}`);
-        }
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        toast.success(data.message || 'Item saved to your wishlist!');
-      } else {
-        throw new Error(data.message || 'Failed to save item');
       }
     } catch (err) {
       toast.error(err.message || 'Failed to save item');
@@ -455,10 +506,10 @@ const Home = () => {
       
       // Fetch current user details for the buyer
       try {
-        const userResponse = await fetch(`${BACKEND_URL}/profilec/user/${userId}`);
+        const userResponse = await apiCall(`/profilec/user/${userId}`);
         const userData = await userResponse.json();
         buyerName = userData.name || 'Not available';
-        buyerEmail = userData.email || '';
+        buyerEmail = userData.email_id || null;
         console.log(`Found buyer name: ${buyerName}, email: ${buyerEmail}`);
       } catch (error) {
         console.error('Error fetching buyer details:', error);
@@ -472,11 +523,11 @@ const Home = () => {
       // Try to fetch the seller's email from the user profile first
       try {
         console.log(`Fetching seller details for ID: ${selectedItem.sellerId}`);
-        const sellerResponse = await fetch(`${BACKEND_URL}/profilec/user/${selectedItem.sellerId}`);
+        const sellerResponse = await apiCall(`/profilec/user/${selectedItem.sellerId}`);
         const sellerData = await sellerResponse.json();
         
-        if (sellerData && sellerData.email) {
-          sellerEmail = sellerData.email;
+        if (sellerData && sellerData.email_id) {
+          sellerEmail = sellerData.email_id;
           sellerName = sellerData.name || sellerName;
           console.log(`Found seller email from profile: ${sellerEmail.substring(0, 3)}...`);
         } else {
@@ -484,11 +535,11 @@ const Home = () => {
           
           // Try another endpoint if the first one doesn't have the email
           try {
-            const altSellerResponse = await fetch(`${BACKEND_URL}/db/${selectedItem.sellerId}`);
+            const altSellerResponse = await apiCall(`/db/${selectedItem.sellerId}`);
             const altSellerData = await altSellerResponse.json();
             
-            if (altSellerData && altSellerData.email) {
-              sellerEmail = altSellerData.email;
+            if (altSellerData && altSellerData.email_id) {
+              sellerEmail = altSellerData.email_id;
               sellerName = altSellerData.name || sellerName;
               console.log(`Found seller email from alt lookup: ${sellerEmail.substring(0, 3)}...`);
             } else {
@@ -509,22 +560,25 @@ const Home = () => {
       }
       
       // Send purchase notification
-      const response = await fetch(`${BACKEND_URL}/purchase/notify`, {
+      const response = await apiCall('/purchase/notify', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
-          orderRef,
-          itemId: selectedItem._id,
-          itemName: selectedItem.item_name,
-          itemPrice: selectedItem.item_price,
-          buyerName,
-          buyerEmail,
-          sellerId: selectedItem.sellerId,
-          sellerName,
-          sellerEmail,
-        }),
+          buyer: {
+            name: buyerName,
+            email: buyerEmail,
+            id: userId
+          },
+          seller: {
+            name: sellerName,
+            email: sellerEmail,
+            id: selectedItem.sellerId
+          },
+          item: {
+            name: selectedItem.item_name,
+            id: selectedItem._id,
+            price: selectedItem.item_price
+          }
+        })
       });
 
       // Process response
