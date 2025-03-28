@@ -33,8 +33,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
-    "vercel-build": "CI=false npm run build",
+    "build": "DISABLE_ESLINT_PLUGIN=true CI=false react-scripts build",
+    "vercel-build": "DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

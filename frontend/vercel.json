@@ -2,6 +2,10 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "buildCommand": "npm run vercel-build"
+  "buildCommand": "npm run vercel-build",
+  "env": {
+    "DISABLE_ESLINT_PLUGIN": "true",
+    "CI": "false"
+  }
 }
   

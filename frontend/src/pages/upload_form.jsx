@@ -241,13 +241,13 @@ const Form = () => {
     try {
       // Store the item data in localStorage
       const newItem = {
-        item_condition,
-        item_tag,
-        item_description,
-        item_name,
-        item_age,
-        item_price,
-        item_image,
+        item_condition: data.item_condition,
+        item_tag: data.item_tag,
+        item_description: data.item_description,
+        item_name: data.item_name,
+        item_age: data.item_age,
+        item_price: data.item_price,
+        item_image: data.item_image,
         timestamp: new Date().toISOString(),
       };
       
@@ -430,7 +430,7 @@ const Form = () => {
                     id="item_age"
                   value={data.item_age}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder="Item age in years"
+                    placeholder="Item age in months"
                   onChange={handleInputs}
                   required
                 />
