@@ -2,6 +2,6 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "buildCommand": "CI=false npm run build"
+  "buildCommand": "npm run vercel-build"
 }
   
