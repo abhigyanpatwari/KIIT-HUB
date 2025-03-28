@@ -12,7 +12,15 @@ const app = express();
 // Using middleware for parsing and cors
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001',
+    'http://localhost:3003',
+    'https://kiithub-frontend.vercel.app',
+    'https://kiithub.vercel.app',
+    'https://kiit-hub.vercel.app',
+    'https://kiit-hub-w7f4.vercel.app'
+  ],
   credentials: true
 }));
 
@@ -22,9 +30,18 @@ const server = http.createServer(app);
 // Initialising Socket.io
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3003'],
-    methods: ['GET', 'POST'],
-    credentials: true
+    origin: [
+      'http://localhost:3000', 
+      'http://localhost:3001', 
+      'http://localhost:3003',
+      'https://kiithub-frontend.vercel.app',
+      'https://kiithub.vercel.app',
+      'https://kiit-hub.vercel.app',
+      'https://kiit-hub-w7f4.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
   }
 });
 

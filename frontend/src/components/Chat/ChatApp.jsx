@@ -1,12 +1,37 @@
 import io from "socket.io-client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Chat from "./Chat";
 import Style from "./css/style.css";
 import { SOCKET_URL } from "../../services/api";
 
 // Use the SOCKET_URL from our centralized service
 console.log("Chat connecting to socket server:", SOCKET_URL);
-const socket = io.connect(SOCKET_URL);
+
+// Initialize socket with proper options
+const socket = io(SOCKET_URL, {
+  transports: ['websocket', 'polling'], // Try WebSocket first, fall back to polling
+  reconnectionAttempts: 5,              // Try to reconnect 5 times
+  reconnectionDelay: 1000,              // Start with 1 second delay between attempts
+  timeout: 20000,                       // Wait 20 seconds before timing out
+  withCredentials: true                 // Include credentials for CORS
+});
+
+// Add socket event listeners
+socket.on('connect', () => {
+  console.log('Socket.io connected successfully with ID:', socket.id);
+});
+
+socket.on('connect_error', (error) => {
+  console.error('Socket.io connection error:', error.message);
+});
+
+socket.on('reconnect_attempt', (attemptNumber) => {
+  console.log(`Socket.io reconnection attempt #${attemptNumber}`);
+});
+
+socket.on('reconnect_failed', () => {
+  console.error('Socket.io failed to reconnect after multiple attempts');
+});
 
 function App(props) {
   const [username, setUsername] = useState("");

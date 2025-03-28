@@ -45,7 +45,8 @@ app.use(cors({
     'http://192.168.1.2:3000',  // Add your local IP if needed
     'https://kiithub-frontend.vercel.app',
     'https://kiithub.vercel.app',
-    'https://kiit-hub.vercel.app'
+    'https://kiit-hub.vercel.app',
+    'https://kiit-hub-w7f4.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
