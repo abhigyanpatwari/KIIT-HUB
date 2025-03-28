@@ -41,12 +41,6 @@ Start the backend Server
 ```  
 Please make sure you have config.env file setup in the backend directory. The Format is demostrated in config.env.example file.
 
-## Demo Video
-
-
-https://user-images.githubusercontent.com/77540753/197020778-9bb78963-4498-43f7-9ddc-423d0c6dbbc9.mov
-
-
 ## Roadmap
 
 - Additional Sign in Options with Google and Github
