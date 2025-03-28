@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode variables (default) */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f3f4f6;
+    --color-bg-tertiary: #e5e7eb;
+    --color-text-primary: #1f2937;
+    --color-text-secondary: #4b5563;
+    --color-text-muted: #6b7280;
+    --color-accent-primary: #4f46e5; /* Indigo */
+    --color-accent-secondary: #8b5cf6; /* Violet */
+    --color-border: #e5e7eb;
+    --color-shadow: rgba(0, 0, 0, 0.1);
+    --color-card-bg: #ffffff;
+    --color-input-bg: #f9fafb;
+    --color-input-text: #1f2937;
+    --color-input-placeholder: #9ca3af;
+    --color-input-border: #d1d5db;
+  }
+
+  .dark-mode {
+    /* Dark mode variables */
+    --color-bg-primary: #111827;
+    --color-bg-secondary: #1f2937;
+    --color-bg-tertiary: #374151;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #e5e7eb;
+    --color-text-muted: #cbd5e1; /* Lighter color for better visibility */
+    --color-accent-primary: #818cf8; /* Lighter Indigo for dark mode */
+    --color-accent-secondary: #a78bfa; /* Lighter Violet for dark mode */
+    --color-border: #374151;
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-card-bg: #1f2937;
+    --color-input-bg: #374151;
+    --color-input-text: #f9fafb;
+    --color-input-placeholder: #9ca3af;
+    --color-input-border: #4b5563;
+  }
+
+  /* Apply theme variables to base elements */
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Fix for navbar overlapping content */
+.main-content-wrapper {
+  padding-top: 5rem; /* Adjust based on navbar height (4rem for smaller screens, 5rem for larger) */
+}
+
+/* Make navbar more appropriate for mobile screens */
+@media (max-width: 768px) {
+  .main-content-wrapper {
+    padding-top: 4rem; /* Smaller padding for mobile */
+  }
+}
+
+/* Add space for specific pages that need more padding like landing page */
+.landing-page-container, 
+.about-page-container,
+.testimonials-container,
+.contact-container {
+  padding-top: 1rem; /* Additional padding for certain pages */
+}
+
+/* Dark mode common components */
+.dark-mode .card,
+.dark-mode .bg-white {
+  background-color: var(--color-card-bg) !important;
+}
+
+.dark-mode .text-gray-700,
+.dark-mode .text-gray-800,
+.dark-mode .text-gray-900 {
+  color: var(--color-text-primary) !important;
+}
+
+.dark-mode .text-gray-500,
+.dark-mode .text-gray-600 {
+  color: var(--color-text-secondary) !important;
+}
+
+.dark-mode .border,
+.dark-mode .border-gray-100,
+.dark-mode .border-gray-200,
+.dark-mode .border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  border-color: var(--color-input-border);
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--color-input-placeholder);
+}
+
+/* Override shadow for dark mode */
+.dark-mode .shadow-md,
+.dark-mode .shadow-lg,
+.dark-mode .shadow-xl {
+  box-shadow: 0 4px 6px -1px var(--color-shadow),
+              0 2px 4px -1px var(--color-shadow);
+}
+
+/* Improved dark mode text visibility */
+.dark-mode p, 
+.dark-mode span, 
+.dark-mode div {
+  text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .text-gray-400 {
+  color: #cbd5e1 !important; /* Lighter shade for better visibility */
+}
+
+.dark-mode .text-gray-500 {
+  color: #a5b4fc !important; /* Brighter color for better visibility */
+}
+
+/* Enhance link contrast in dark mode */
+.dark-mode a:not(.btn):not(.nav-link) {
+  color: #a5b4fc;
+}
+
+.dark-mode a:hover:not(.btn):not(.nav-link) {
+  color: #c7d2fe;
+}
+
