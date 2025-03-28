@@ -18,7 +18,8 @@ export const apiCall = async (endpoint, options = {}) => {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    credentials: 'include'
+    // Make credentials optional based on endpoint
+    credentials: endpoint.includes('/socket.io') ? 'omit' : 'include'
   };
   
   // Merge default options with provided options
@@ -32,7 +33,7 @@ export const apiCall = async (endpoint, options = {}) => {
   };
   
   try {
-    console.log(`Making API call to: ${url}`);
+    console.log(`Making API call to: ${url} with credentials: ${fetchOptions.credentials}`);
     const response = await fetch(url, fetchOptions);
     
     // Log response status

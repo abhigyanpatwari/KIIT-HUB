@@ -12,8 +12,7 @@ const socket = io(SOCKET_URL, {
   transports: ['polling'],          // Use only polling since WebSockets might be failing on Vercel
   reconnectionAttempts: 5,          // Try to reconnect 5 times
   reconnectionDelay: 1000,          // Start with 1 second delay between attempts
-  timeout: 20000,                   // Wait 20 seconds before timing out
-  withCredentials: true             // Include credentials for CORS
+  timeout: 20000                    // Wait 20 seconds before timing out
 });
 
 // Add socket event listeners

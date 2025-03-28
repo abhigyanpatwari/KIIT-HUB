@@ -30,18 +30,9 @@ const server = http.createServer(app);
 // Initialising Socket.io
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:3000', 
-      'http://localhost:3001', 
-      'http://localhost:3003',
-      'https://kiithub-frontend.vercel.app',
-      'https://kiithub.vercel.app',
-      'https://kiit-hub.vercel.app',
-      'https://kiit-hub-w7f4.vercel.app'
-    ],
+    origin: 'https://kiit-hub-w7f4.vercel.app',
     methods: ['GET', 'POST', 'OPTIONS'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    credentials: false
   }
 });
 
