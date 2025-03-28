@@ -32,10 +32,24 @@ export const apiCall = async (endpoint, options = {}) => {
   };
   
   try {
+    console.log(`Making API call to: ${url}`);
     const response = await fetch(url, fetchOptions);
+    
+    // Log response status
+    console.log(`API response status: ${response.status}`);
+    
+    if (response.status === 404) {
+      console.error(`API endpoint not found: ${endpoint}`);
+      throw new Error(`API endpoint not found: ${endpoint}`);
+    }
+    
     return response;
   } catch (error) {
     console.error(`API call to ${endpoint} failed:`, error);
+    // Add more detailed error info
+    if (error.message === 'Failed to fetch') {
+      console.error('This likely indicates a network issue or CORS problem. Check that the backend is accessible.');
+    }
     throw error;
   }
 };

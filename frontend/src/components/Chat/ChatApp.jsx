@@ -9,11 +9,11 @@ console.log("Chat connecting to socket server:", SOCKET_URL);
 
 // Initialize socket with proper options
 const socket = io(SOCKET_URL, {
-  transports: ['websocket', 'polling'], // Try WebSocket first, fall back to polling
-  reconnectionAttempts: 5,              // Try to reconnect 5 times
-  reconnectionDelay: 1000,              // Start with 1 second delay between attempts
-  timeout: 20000,                       // Wait 20 seconds before timing out
-  withCredentials: true                 // Include credentials for CORS
+  transports: ['polling'],          // Use only polling since WebSockets might be failing on Vercel
+  reconnectionAttempts: 5,          // Try to reconnect 5 times
+  reconnectionDelay: 1000,          // Start with 1 second delay between attempts
+  timeout: 20000,                   // Wait 20 seconds before timing out
+  withCredentials: true             // Include credentials for CORS
 });
 
 // Add socket event listeners
@@ -37,6 +37,18 @@ function App(props) {
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState(props.id);
   const [showChat, setShowChat] = useState(false);
+  const [connectionFailed, setConnectionFailed] = useState(false);
+
+  // Listen for connection errors and set state
+  useEffect(() => {
+    socket.on('connect_error', () => {
+      setConnectionFailed(true);
+    });
+
+    return () => {
+      socket.off('connect_error');
+    };
+  }, []);
 
   const joinRoom = () => {
     if (username !== "" && room !== "") {
@@ -44,6 +56,25 @@ function App(props) {
       setShowChat(true);
     }
   };
+
+  // Show fallback UI if connection fails
+  if (connectionFailed) {
+    return (
+      <div className="App">
+        <div className="joinChatContainer">
+          <div className="text-slate-600 text-[150%] text-left ml-2">
+            Chat Temporarily Unavailable
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            We're experiencing issues with our chat service. Please try again later.
+          </p>
+          <button onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
