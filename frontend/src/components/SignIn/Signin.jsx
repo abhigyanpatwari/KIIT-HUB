@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import "./CSS/style.css";
 import { useAuth } from "../../Contexts/AuthContext";
 import { motion } from 'framer-motion';
-const backendUrl = "http://localhost:5001";
+import { API_URL, apiCall } from '../../services/api';
 
-
+// Use the API_URL from our centralized service
+console.log("Signin component using API URL:", API_URL);
 
 const Signin = () => {
   const navigate = useNavigate();
@@ -36,13 +37,8 @@ const Signin = () => {
         return;
       }
 
-      const res = await fetch(`${backendUrl}/signin`, {
+      const res = await apiCall('/signin', {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        credentials: "include",
         body: JSON.stringify({
           email_id,
           password,
@@ -59,12 +55,8 @@ const Signin = () => {
         // Verify the session was created properly
         try {
           console.log("Verifying session was created...");
-          const sessionCheck = await fetch(`${backendUrl}/current-user`, {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json"
-            }
+          const sessionCheck = await apiCall('/current-user', {
+            method: "GET"
           });
           
           const sessionData = await sessionCheck.json();
@@ -162,11 +154,8 @@ const Signin = () => {
     }
     
     try {
-      const res = await fetch(`${backendUrl}/otp/send-otp`, {
+      const res = await apiCall('/otp/send-otp', {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email_id: user.email_id }),
       });
       
@@ -218,27 +207,18 @@ const Signin = () => {
     }
 
     try {
-      console.log("Sending verify-otp request...");
-      const res = await fetch(`${backendUrl}/otp/verify-otp`, {
+      // First verify OTP
+      const verifyRes = await apiCall('/otp/verify-otp', {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          name,
-          email_id,
-          password,
-          otp,
-        }),
+        body: JSON.stringify({ email_id, otp }),
       });
 
-      console.log("Response status:", res.status);
-      const data = await res.json();
-      console.log("Response data:", data);
+      console.log("Response status:", verifyRes.status);
+      const verifyData = await verifyRes.json();
+      console.log("Response data:", verifyData);
 
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
+      if (!verifyRes.ok) {
+        throw new Error(verifyData.message || "Registration failed");
       }
 
       // Registration successful
@@ -248,16 +228,12 @@ const Signin = () => {
       });
       console.log("Registration Successful");
       
-      if (data.user) {
+      if (verifyData.user) {
         // Verify the session was created properly
         try {
           console.log("Verifying session after registration...");
-          const sessionCheck = await fetch(`${backendUrl}/current-user`, {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json"
-            }
+          const sessionCheck = await apiCall('/current-user', {
+            method: "GET"
           });
           
           const sessionData = await sessionCheck.json();
@@ -268,12 +244,12 @@ const Signin = () => {
             setAuthUser(sessionData.user);
           } else {
             console.log("Session verification failed, using registration response data");
-            setAuthUser(data.user);
+            setAuthUser(verifyData.user);
           }
         } catch (sessionError) {
           console.error("Error checking session after registration:", sessionError);
           console.log("Using registration response data due to session check error");
-          setAuthUser(data.user);
+          setAuthUser(verifyData.user);
         }
         
         // Set login state
@@ -281,7 +257,7 @@ const Signin = () => {
         console.log("Login state updated after registration");
         
         // Store user ID in localStorage
-        localStorage.setItem('userId', data.user._id);
+        localStorage.setItem('userId', verifyData.user._id);
         
         // Navigate to profile page after a delay
         setTimeout(() => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { API_URL, apiCall } from '../services/api';
 
 const AuthContext = React.createContext();
 
@@ -11,6 +12,7 @@ export function AuthProvider({ children }){
     const [isloggedin, setIsloggedin] = useState(false);
     const [authLoaded, setAuthLoaded] = useState(false); // New flag
     const [isCheckingAuth, setIsCheckingAuth] = useState(false); // Flag to track auth checking
+    const [isLoading, setIsLoading] = useState(false);
 
     // Check authentication on provider mount
     useEffect(() => {
@@ -25,11 +27,7 @@ export function AuthProvider({ children }){
                 // First try session-based authentication
                 try {
                     console.log("Trying session authentication...");
-                    const sessionRes = await fetch("http://localhost:5001/current-user", {
-                        method: "GET",
-                        credentials: "include",
-                        headers: { "Content-Type": "application/json" },
-                    });
+                    const sessionRes = await apiCall('/current-user', { method: 'GET' });
                     
                     if (sessionRes.ok) {
                         const sessionData = await sessionRes.json();
@@ -60,11 +58,7 @@ export function AuthProvider({ children }){
                 
                 // Fall back to JWT authentication if session failed
                 console.log("Falling back to JWT authentication...");
-                const res = await fetch("http://localhost:5001/profilec", {
-                    method: "GET",
-                    credentials: "include",
-                    headers: { "Content-Type": "application/json" },
-                });
+                const res = await apiCall('/profilec', { method: 'GET' });
 
                 if (!res.ok) {
                     throw new Error("Not authenticated via JWT");
@@ -97,27 +91,89 @@ export function AuthProvider({ children }){
         }
     }, [isCheckingAuth, authLoaded]);
     
-    // Function to log out user - clears all auth state
-    const logout = async () => {
-        console.log("Logging out user");
-        
+    const fetchSession = async () => {
+        setIsLoading(true);
         try {
-            // Call server logout endpoint
-            const res = await fetch("http://localhost:5001/logout", {
-                method: "GET",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
+            console.log("Checking for existing session...")
+            const sessionRes = await apiCall('/current-user', { method: 'GET' });
             
-            console.log("Logout response:", res.status);
+            if (sessionRes.ok) {
+                const sessionData = await sessionRes.json();
+                console.log("Session check result:", sessionData);
+                
+                if (sessionData.user) {
+                    setAuthUser(sessionData.user);
+                    setIsloggedin(true);
+                    console.log("User is logged in:", sessionData.user._id);
+                } else {
+                    console.log("No active session found");
+                    setAuthUser(null);
+                    setIsloggedin(false);
+                }
+            } else {
+                console.log("Session check failed, status:", sessionRes.status);
+                setAuthUser(null);
+                setIsloggedin(false);
+            }
         } catch (error) {
-            console.error("Error during logout:", error);
-        } finally {
-            // Reset state
+            console.error("Error checking session:", error);
             setAuthUser(null);
             setIsloggedin(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchProfile = async () => {
+        if (!isloggedin || !authUser) {
+            console.log("Not fetching profile because user is not logged in");
+            return;
+        }
+        
+        try {
+            console.log("Fetching user profile data...")
+            const res = await apiCall('/profilec', { method: 'GET' });
             
-            console.log("User logged out, auth state cleared");
+            if (res.ok) {
+                const userData = await res.json();
+                if (userData.user) {
+                    setAuthUser(userData.user);
+                    console.log("Profile updated from server:", userData.user._id);
+                }
+            } else {
+                console.log("Profile fetch failed, status:", res.status);
+            }
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+        }
+    };
+
+    // Function to log out user - clears all auth state
+    const logout = async () => {
+        try {
+            console.log("Logging out...");
+            const res = await apiCall('/logout', { method: 'GET' });
+            
+            // Clear local auth state regardless of server response
+            setAuthUser(null);
+            setIsloggedin(false);
+            localStorage.removeItem('userId');
+            console.log("Logged out client-side");
+            
+            if (res.ok) {
+                console.log("Logout successful on server");
+            } else {
+                console.log("Logout on server may not have succeeded, status:", res.status);
+            }
+            
+            return true;
+        } catch (error) {
+            console.error("Error during logout:", error);
+            // Still clear local auth state on error
+            setAuthUser(null);
+            setIsloggedin(false);
+            localStorage.removeItem('userId');
+            return false;
         }
     };
 
