@@ -321,10 +321,10 @@ const SavedItems = () => {
       // Send purchase notification
       const response = await fetch(`${BACKEND_URL}/purchase/notify`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
           orderRef,
           itemId: selectedItem._id,
           itemName: selectedItem.title,
@@ -617,8 +617,8 @@ const SavedItems = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+      </div>
+    </div>
       )}
     </motion.div>
   );
