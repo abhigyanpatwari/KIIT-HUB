@@ -414,7 +414,7 @@ const Home = () => {
         }
         
         // Send purchase notification
-        const response = await apiCall('/purchase/notify', {
+        const purchaseResponse = await apiCall('/purchase/notify', {
           method: 'POST',
           body: JSON.stringify({
             buyer: {
@@ -436,8 +436,8 @@ const Home = () => {
         });
 
         // Process response
-        const result = await response.json();
-        if (response.ok) {
+        const result = await purchaseResponse.json();
+        if (purchaseResponse.ok) {
           // Successful API call
           setShowConfirmModal(false);
           
@@ -560,7 +560,7 @@ const Home = () => {
       }
       
       // Send purchase notification
-      const response = await apiCall('/purchase/notify', {
+      const purchaseResponse = await apiCall('/purchase/notify', {
         method: 'POST',
         body: JSON.stringify({
           buyer: {
@@ -582,8 +582,8 @@ const Home = () => {
       });
 
       // Process response
-      const result = await response.json();
-      if (response.ok) {
+      const result = await purchaseResponse.json();
+      if (purchaseResponse.ok) {
         // Successful API call
         setShowConfirmModal(false);
         
