@@ -21,7 +21,10 @@ socket.on('connect', () => {
 });
 
 socket.on('connect_error', (error) => {
-  console.error('Socket.io connection error:', error.message);
+  console.error('Socket.io connection error:', error.message, 'URL:', SOCKET_URL);
+  // Add more diagnostic information
+  console.log('Browser location:', window.location.href);
+  console.log('Network status:', navigator.onLine ? 'online' : 'offline');
 });
 
 socket.on('reconnect_attempt', (attemptNumber) => {

@@ -64,7 +64,7 @@ app.use(session({
   cookie: { 
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: process.env.NODE_ENV === 'production'
   },
   store: MongoStore.create({

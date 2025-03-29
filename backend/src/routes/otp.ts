@@ -200,7 +200,7 @@ router.post("/verify-otp", async (req: Request, res: Response) => {
       expires: new Date(Date.now() + 25892000000), // 30 days
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     });
 
     return res.status(201).json({ 
