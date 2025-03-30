@@ -66,7 +66,10 @@ const startServer = async () => {
         ],
         methods: ['GET', 'POST', 'OPTIONS'],
         credentials: true
-      }
+      },
+      transports: ['polling'],
+      pingTimeout: 30000,
+      pingInterval: 25000
     });
 
     io.on("connection", (socket) => {
@@ -87,6 +90,17 @@ const startServer = async () => {
       // Handle disconnection
       socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);
+      });
+    });
+    
+    // Add Socket.io health check route
+    app.get('/socket-health', (req, res) => {
+      res.status(200).json({
+        status: 'ok',
+        socketio: io ? 'initialized' : 'not initialized',
+        timestamp: new Date().toISOString(),
+        version: '1.0.2',
+        deployedFrom: 'main'
       });
     });
 
