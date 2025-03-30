@@ -58,6 +58,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Add explicit handling for OPTIONS requests
+app.options('*', (req, res) => {
+  res.status(200).end();
+});
+
 // Configure session
 app.use(session({
   secret: 'kiithub_secret_key', 

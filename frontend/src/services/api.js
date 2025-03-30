@@ -62,9 +62,34 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 };
 
+// Helper function for testing CORS connectivity
+export const testCorsConnection = async () => {
+  try {
+    console.log('Testing CORS connection to backend...');
+    const url = `${normalizedApiUrl}/cors-test`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+    
+    const data = await response.json();
+    console.log('CORS test result:', data);
+    return data;
+  } catch (error) {
+    console.error('CORS test failed:', error);
+    throw error;
+  }
+};
+
 // Export default for convenience
 export default {
   API_URL: normalizedApiUrl,
   SOCKET_URL,
-  apiCall
+  apiCall,
+  testCorsConnection
 }; 
