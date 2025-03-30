@@ -28,6 +28,24 @@ import contactRouter from './src/routes/contact';
 
 const app = express();
 
+// Early handling of OPTIONS requests (before CORS)
+app.use((req, res, next) => {
+  // Force return 200 for OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    console.log('Received OPTIONS request for:', req.url);
+    // Return 200 for all OPTIONS requests with CORS headers
+    res.set({
+      'Access-Control-Allow-Origin': 'https://kiithub-frontend.vercel.app',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400', // 24 hours
+    });
+    return res.status(200).end();
+  }
+  return next();
+});
+
 // Configure CORS
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
@@ -57,11 +75,6 @@ app.use(cors({
 
 app.use(express.json());
 app.use(cookieParser());
-
-// Add explicit handling for OPTIONS requests
-app.options('*', (req, res) => {
-  res.status(200).end();
-});
 
 // Configure session
 app.use(session({

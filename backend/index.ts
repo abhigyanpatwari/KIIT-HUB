@@ -43,34 +43,57 @@ const startServer = async () => {
     // Create the server
     const server = http.createServer(app);
 
-    // Configure Socket.io with simplified options
+    // Add debug routes for frontend to test
+    app.get('/api-health', (req, res) => {
+      res.status(200).json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV
+      });
+    });
+
+    // Simple message endpoint as Socket.io alternative
+    app.post('/api/message', (req, res) => {
+      const { roomId, message, sender } = req.body;
+      console.log(`Message from ${sender} to room ${roomId}: ${message}`);
+      // In a real app, you would store this in a database for retrieval
+      res.status(200).json({ success: true, received: true });
+    });
+
+    app.get('/api/messages/:roomId', (req, res) => {
+      const { roomId } = req.params;
+      // In a real app, you would fetch messages from a database
+      res.status(200).json({
+        messages: [
+          { sender: 'System', content: 'Messages will appear here', timestamp: new Date().toISOString() }
+        ]
+      });
+    });
+
+    // Configure Socket.io with very simple options
+    // Note: This likely won't work well on Vercel's serverless environment
     const io = new Server(server, {
       cors: {
-        origin: process.env.NODE_ENV === 'production' 
-          ? 'https://kiithub-frontend.vercel.app'
-          : '*', // Allow all origins for development
+        origin: 'https://kiithub-frontend.vercel.app',
         methods: ['GET', 'POST']
       },
       transports: ['polling']
     });
 
-    // Simplified connection handler
     io.on("connection", (socket) => {
       console.log("New socket connection: ", socket.id);
       
-      // Handle chat room joining
+      // Basic event handlers
       socket.on('join_room', (roomId) => {
         socket.join(roomId);
         console.log(`Socket ${socket.id} joined room ${roomId}`);
       });
 
-      // Handle message sending
       socket.on('send_message', (data) => {
         console.log(`Message from ${socket.id} to room ${data.room}`);
         socket.to(data.room).emit('receive_message', data);
       });
       
-      // Handle disconnection
       socket.on('disconnect', () => {
         console.log(`Socket disconnected: ${socket.id}`);
       });

@@ -9,38 +9,19 @@
           }
       }
   ],
-  "routes": [
-      {
-          "src": "/socket\\.io/(.*)",
-          "dest": "dist/index.js",
-          "headers": {
-              "Access-Control-Allow-Credentials": "true",
-              "Access-Control-Allow-Origin": "https://kiithub-frontend.vercel.app",
-              "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-              "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
-          }
-      },
-      {
-          "src": "/(.*)",
-          "methods": ["OPTIONS"],
-          "dest": "dist/index.js",
-          "headers": {
-              "Access-Control-Allow-Credentials": "true",
-              "Access-Control-Allow-Origin": "https://kiithub-frontend.vercel.app",
-              "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-              "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
-          }
-      },
-      {
-          "src": "/(.*)",
-          "dest": "dist/index.js",
-          "headers": {
-              "Access-Control-Allow-Credentials": "true",
-              "Access-Control-Allow-Origin": "https://kiithub-frontend.vercel.app",
-              "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-              "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
-          }
-      }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "https://kiithub-frontend.vercel.app" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/dist/index.js" }
   ],
   "env": {
       "NODE_ENV": "production"
