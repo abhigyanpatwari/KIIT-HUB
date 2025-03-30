@@ -91,11 +91,11 @@ export const apiCall = async (endpoint, options = {}, retries = 1) => {
 export const testCorsConnection = async () => {
   try {
     console.log('Testing CORS connection to backend...');
-    // Try the health endpoint first
-    const healthUrl = `${normalizedApiUrl}/api/health`;
+    // Try the dedicated CORS endpoint first
+    const corsUrl = `${normalizedApiUrl}/api/cors`;
     
-    console.log('Testing connection to:', healthUrl);
-    const response = await fetch(healthUrl, {
+    console.log('Testing connection to:', corsUrl);
+    const response = await fetch(corsUrl, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -105,7 +105,7 @@ export const testCorsConnection = async () => {
     });
     
     const data = await response.json();
-    console.log('Health check result:', data);
+    console.log('CORS test result:', data);
     return data;
   } catch (error) {
     console.error('CORS test failed:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { API_URL, apiCall } from '../services/api';
+import { API_URL, apiCall, testCorsConnection } from '../services/api';
 
 const AuthContext = React.createContext();
 
@@ -24,7 +24,22 @@ export function AuthProvider({ children }){
             try {
                 console.log("Checking authentication status...");
                 
-                // First check API health
+                // First check CORS connectivity
+                try {
+                    console.log("Testing CORS connectivity...");
+                    const corsTest = await testCorsConnection();
+                    console.log("CORS test result:", corsTest);
+                    
+                    if (!corsTest.success) {
+                        console.error("CORS test failed");
+                        throw new Error("CORS test failed");
+                    }
+                } catch (corsError) {
+                    console.error("CORS connectivity test failed:", corsError);
+                    // Continue anyway, the actual API calls might still work
+                }
+                
+                // Try API health check next
                 try {
                     console.log("Checking API health...");
                     const healthRes = await apiCall('/api/health', { method: 'GET' });

@@ -12,6 +12,26 @@
   ],
   "routes": [
     {
+      "src": "/api/cors",
+      "methods": ["OPTIONS", "GET"],
+      "dest": "/api/cors.js"
+    },
+    {
+      "src": "/api/auth",
+      "methods": ["OPTIONS", "POST"],
+      "dest": "/api/auth.js"
+    },
+    {
+      "src": "/api/profile",
+      "methods": ["OPTIONS", "GET"],
+      "dest": "/api/profile.js"
+    },
+    {
+      "src": "/api/health",
+      "methods": ["OPTIONS", "GET"],
+      "dest": "/api/health.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },

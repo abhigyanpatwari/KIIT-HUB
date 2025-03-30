@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./CSS/style.css";
 import { useAuth } from "../../Contexts/AuthContext";
 import { motion } from 'framer-motion';
-import { API_URL, apiCall } from '../../services/api';
+import { API_URL, apiCall, testCorsConnection } from '../../services/api';
 
 // Use the API_URL from our centralized service
 console.log("Signin component using API URL:", API_URL);
@@ -35,6 +35,15 @@ const Signin = () => {
         setLoginStatus({ type: "error", message: "Please enter both email and password" });
         setIsLoading(false);
         return;
+      }
+
+      // First test CORS
+      try {
+        console.log("Testing CORS connectivity before login...");
+        await testCorsConnection();
+      } catch (corsError) {
+        console.error("CORS test failed:", corsError);
+        // Continue with login attempt anyway
       }
 
       const res = await apiCall('/api/auth', {
