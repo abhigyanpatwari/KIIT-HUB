@@ -43,48 +43,29 @@ const startServer = async () => {
     // Create the server
     const server = http.createServer(app);
 
-    // Configure Socket.io
+    // Configure Socket.io with simplified options
     const io = new Server(server, {
       cors: {
-        origin: [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'http://localhost:3002',
-          'http://localhost:3003',
-          'http://localhost:3004',
-          'http://localhost:3005',
-          'http://localhost:3006',
-          'http://localhost:8000',
-          'http://localhost:8080',
-          'http://127.0.0.1:3000',
-          'http://127.0.0.1:5173',
-          'http://192.168.1.2:3000',
-          'https://kiithub-frontend.vercel.app',
-          'https://kiithub.vercel.app',
-          'https://kiit-hub.vercel.app',
-          'https://kiit-hub-w7f4.vercel.app'
-        ],
-        methods: ['GET', 'POST', 'OPTIONS'],
-        credentials: true
+        origin: '*', // Allow all origins for initial testing
+        methods: ['GET', 'POST']
       },
-      transports: ['polling'],
-      pingTimeout: 30000,
-      pingInterval: 25000
+      transports: ['polling']
     });
 
+    // Simplified connection handler
     io.on("connection", (socket) => {
       console.log("New socket connection: ", socket.id);
       
       // Handle chat room joining
-      socket.on('join_room', (data) => {
-        socket.join(data);
-        console.log(`User ${socket.id} joined room: ${data}`);
+      socket.on('join_room', (roomId) => {
+        socket.join(roomId);
+        console.log(`Socket ${socket.id} joined room ${roomId}`);
       });
 
       // Handle message sending
       socket.on('send_message', (data) => {
+        console.log(`Message from ${socket.id} to room ${data.room}`);
         socket.to(data.room).emit('receive_message', data);
-        console.log(`Message sent in room ${data.room} by ${socket.id}`);
       });
       
       // Handle disconnection
@@ -97,10 +78,9 @@ const startServer = async () => {
     app.get('/socket-health', (req, res) => {
       res.status(200).json({
         status: 'ok',
-        socketio: io ? 'initialized' : 'not initialized',
+        socketio: 'initialized',
         timestamp: new Date().toISOString(),
-        version: '1.0.2',
-        deployedFrom: 'main'
+        version: '1.0.3'
       });
     });
 

@@ -10,16 +10,11 @@ const normalizedSocketUrl = SOCKET_URL.endsWith('/') ? SOCKET_URL.slice(0, -1) :
 // Use the SOCKET_URL from our centralized service
 console.log("Chat connecting to socket server:", normalizedSocketUrl);
 
-// Initialize socket with proper options
+// Initialize socket with very basic options for Vercel
 const socket = io(normalizedSocketUrl, {
-  path: '/socket.io', // Ensure path is set correctly
-  transports: ['polling'],          // Use only polling since WebSockets might be failing on Vercel
-  reconnectionAttempts: 5,          // Try to reconnect 5 times
-  reconnectionDelay: 1000,          // Start with 1 second delay between attempts
-  timeout: 20000,                   // Wait 20 seconds before timing out
-  forceNew: true,                   // Force a new connection
-  autoConnect: false,               // Don't connect automatically - we'll do it manually
-  withCredentials: false            // Don't send credentials for socket.io
+  transports: ['polling'],
+  timeout: 10000,
+  reconnectionAttempts: 3
 });
 
 // Add socket event listeners
@@ -32,12 +27,6 @@ socket.on('connect_error', (error) => {
   // Add more diagnostic information
   console.log('Browser location:', window.location.href);
   console.log('Network status:', navigator.onLine ? 'online' : 'offline');
-  try {
-    console.log('Socket transport:', socket.io.engine.transport.name);
-    console.log('Socket opts:', JSON.stringify(socket.io.opts));
-  } catch (e) {
-    console.log('Could not access socket transport details:', e.message);
-  }
 });
 
 socket.on('reconnect_attempt', (attemptNumber) => {
