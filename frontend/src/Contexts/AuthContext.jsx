@@ -27,7 +27,7 @@ export function AuthProvider({ children }){
                 // First try session-based authentication
                 try {
                     console.log("Trying session authentication...");
-                    const sessionRes = await apiCall('/current-user', { method: 'GET' });
+                    const sessionRes = await apiCall('/api/profile', { method: 'GET' });
                     
                     if (sessionRes.ok) {
                         const sessionData = await sessionRes.json();
@@ -58,7 +58,7 @@ export function AuthProvider({ children }){
                 
                 // Fall back to JWT authentication if session failed
                 console.log("Falling back to JWT authentication...");
-                const res = await apiCall('/profilec', { method: 'GET' });
+                const res = await apiCall('/api/profile', { method: 'GET' });
 
                 if (!res.ok) {
                     throw new Error("Not authenticated via JWT");
