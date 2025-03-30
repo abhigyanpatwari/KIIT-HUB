@@ -46,7 +46,9 @@ const startServer = async () => {
     // Configure Socket.io with simplified options
     const io = new Server(server, {
       cors: {
-        origin: '*', // Allow all origins for initial testing
+        origin: process.env.NODE_ENV === 'production' 
+          ? 'https://kiithub-frontend.vercel.app'
+          : '*', // Allow all origins for development
         methods: ['GET', 'POST']
       },
       transports: ['polling']
