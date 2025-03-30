@@ -80,7 +80,8 @@ const startServer = async () => {
         status: 'ok',
         socketio: 'initialized',
         timestamp: new Date().toISOString(),
-        version: '1.0.3'
+        version: '1.0.4',
+        buildTime: new Date().toISOString()
       });
     });
 
