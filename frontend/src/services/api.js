@@ -10,9 +10,13 @@ const normalizedApiUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
 // Log the backend URL being used
 console.log('API service initialized with URL:', normalizedApiUrl);
 console.log('Socket URL:', SOCKET_URL);
+console.log('Environment:', process.env.NODE_ENV || 'development');
 
-// Helper function for making API calls with the correct URL
-export const apiCall = async (endpoint, options = {}) => {
+// Simple delay function for retries
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper function for making API calls with the correct URL and retry logic
+export const apiCall = async (endpoint, options = {}, retries = 1) => {
   // Ensure endpoint starts with a slash
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
@@ -50,14 +54,35 @@ export const apiCall = async (endpoint, options = {}) => {
       console.error(`API endpoint not found: ${normalizedEndpoint}`);
       throw new Error(`API endpoint not found: ${normalizedEndpoint}`);
     }
+
+    // Check for CORS issues in preflight responses
+    if (response.type === 'opaque' || response.type === 'opaqueredirect') {
+      console.error('CORS error detected - response type:', response.type);
+      throw new Error('CORS policy blocked this request');
+    }
     
     return response;
   } catch (error) {
     console.error(`API call to ${endpoint} failed:`, error);
-    // Add more detailed error info
+    
+    // Add more detailed diagnostics
     if (error.message === 'Failed to fetch') {
       console.error('This likely indicates a network issue or CORS problem. Check that the backend is accessible.');
+      console.log('Network status:', navigator.onLine ? 'online' : 'offline');
+      console.log('Current URL:', window.location.href);
+      console.log('Target API URL:', url);
     }
+    
+    // Retry logic for network failures
+    if (retries > 0 && 
+        (error.message === 'Failed to fetch' || 
+         error.message.includes('NetworkError') || 
+         error.message.includes('CORS'))) {
+      console.log(`Retrying API call to ${endpoint}... (${retries} attempts remaining)`);
+      await delay(1000); // Wait 1 second before retrying
+      return apiCall(endpoint, options, retries - 1);
+    }
+    
     throw error;
   }
 };
@@ -66,9 +91,11 @@ export const apiCall = async (endpoint, options = {}) => {
 export const testCorsConnection = async () => {
   try {
     console.log('Testing CORS connection to backend...');
-    const url = `${normalizedApiUrl}/cors-test`;
+    // Try the health endpoint first
+    const healthUrl = `${normalizedApiUrl}/api/health`;
     
-    const response = await fetch(url, {
+    console.log('Testing connection to:', healthUrl);
+    const response = await fetch(healthUrl, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -78,7 +105,7 @@ export const testCorsConnection = async () => {
     });
     
     const data = await response.json();
-    console.log('CORS test result:', data);
+    console.log('Health check result:', data);
     return data;
   } catch (error) {
     console.error('CORS test failed:', error);

@@ -24,7 +24,22 @@ export function AuthProvider({ children }){
             try {
                 console.log("Checking authentication status...");
                 
-                // First try session-based authentication
+                // First check API health
+                try {
+                    console.log("Checking API health...");
+                    const healthRes = await apiCall('/api/health', { method: 'GET' });
+                    
+                    if (healthRes.ok) {
+                        const healthData = await healthRes.json();
+                        console.log("API health status:", healthData);
+                    } else {
+                        console.warn("API health check failed, status:", healthRes.status);
+                    }
+                } catch (healthError) {
+                    console.error("Error checking API health:", healthError);
+                }
+                
+                // Try session-based authentication
                 try {
                     console.log("Trying session authentication...");
                     const sessionRes = await apiCall('/api/profile', { method: 'GET' });
@@ -56,25 +71,10 @@ export function AuthProvider({ children }){
                     console.error("Error checking session:", sessionError);
                 }
                 
-                // Fall back to JWT authentication if session failed
-                console.log("Falling back to JWT authentication...");
-                const res = await apiCall('/api/profile', { method: 'GET' });
-
-                if (!res.ok) {
-                    throw new Error("Not authenticated via JWT");
-                }
-                
-                const data = await res.json();
-                console.log("JWT profile data:", data);
-                
-                // Set auth user state with a default empty list if needed
-                const userData = data.user || data;
-                if (!userData.list) {
-                    userData.list = [];
-                }
-                
-                setAuthUser(userData);
-                setIsloggedin(true);
+                // User is not authenticated
+                console.log("User is not authenticated");
+                setAuthUser(null);
+                setIsloggedin(false);
             } catch (error) {
                 console.error("Authentication check failed:", error);
                 setAuthUser(null);

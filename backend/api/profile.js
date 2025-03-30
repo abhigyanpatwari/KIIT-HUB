@@ -1,87 +1,62 @@
 // Serverless function for user profile
-const { connect } = require('../dist/src/db/conn');
-const User = require('../dist/src/models/userSchema');
+const connect = require('../src/config/database');
+const User = require('../src/models/User');
 const jwt = require('jsonwebtoken');
 
-// Helper for setting CORS headers
-const setCorsHeaders = (res) => {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+// Function to set CORS headers
+function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://kiithub-frontend.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
-};
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+  res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+}
 
 module.exports = async (req, res) => {
-  // Handle preflight OPTIONS request
+  // Handle preflight requests immediately
   if (req.method === 'OPTIONS') {
     setCorsHeaders(res);
     return res.status(200).end();
   }
-
+  
   // Set CORS headers for all responses
   setCorsHeaders(res);
-
+  
   try {
-    // Connect to the database
+    // Connect to database
     await connect();
-
+    
     if (req.method === 'GET') {
-      // Get the token from cookies
-      const cookies = req.headers.cookie;
-      if (!cookies) {
-        return res.status(401).json({ 
-          success: false,
-          message: 'Authorization required' 
-        });
-      }
-
-      const tokenCookie = cookies.split(';').find(c => c.trim().startsWith('jwtoken='));
-      if (!tokenCookie) {
-        return res.status(401).json({ 
-          success: false,
-          message: 'Token not found' 
-        });
-      }
-
-      const token = tokenCookie.split('=')[1];
+      // Extract the token from cookie or Authorization header
+      const token = req.cookies?.token || 
+                   (req.headers.authorization ? req.headers.authorization.split(' ')[1] : null);
       
-      // Verify the token
-      const verifyToken = jwt.verify(token, process.env.JWT_SECRET || 'secret_key');
-      
-      // Find the user
-      const user = await User.findOne({ _id: verifyToken._id, "tokens.token": token });
-      
-      if (!user) {
-        return res.status(404).json({ 
-          success: false,
-          message: 'User not found' 
-        });
+      if (!token) {
+        return res.status(401).json({ success: false, message: 'No authentication token found' });
       }
-
-      // Return user data
-      return res.status(200).json({
-        success: true,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email_id: user.email_id,
-          college_name: user.college_name || 'KIIT University',
-          list: user.list || []
+      
+      try {
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Find the user
+        const user = await User.findById(decoded.id).select('-password');
+        
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
         }
-      });
+        
+        // Return user data
+        return res.status(200).json({ success: true, user });
+      } catch (error) {
+        console.error('Token verification error:', error);
+        return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+      }
     } else {
-      // Method not allowed
-      return res.status(405).json({
-        success: false,
-        message: 'Method not allowed'
-      });
+      return res.status(405).json({ success: false, message: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Profile error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
+    console.error('Server error:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 }; 

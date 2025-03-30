@@ -37,10 +37,10 @@ const Signin = () => {
         return;
       }
 
-      const res = await apiCall('/signin', {
+      const res = await apiCall('/api/auth', {
         method: "POST",
         body: JSON.stringify({
-          email_id,
+          email: email_id,
           password,
         }),
       });
@@ -55,7 +55,7 @@ const Signin = () => {
         // Verify the session was created properly
         try {
           console.log("Verifying session was created...");
-          const sessionCheck = await apiCall('/current-user', {
+          const sessionCheck = await apiCall('/api/profile', {
             method: "GET"
           });
           
