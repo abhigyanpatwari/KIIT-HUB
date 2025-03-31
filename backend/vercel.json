@@ -10,48 +10,19 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/cors",
-      "methods": ["OPTIONS", "GET"],
-      "dest": "/api/cors.js"
-    },
-    {
-      "src": "/api/auth",
-      "methods": ["OPTIONS", "POST"],
-      "dest": "/api/auth.js"
-    },
-    {
-      "src": "/api/profile",
-      "methods": ["OPTIONS", "GET"],
-      "dest": "/api/profile.js"
-    },
-    {
-      "src": "/api/health",
-      "methods": ["OPTIONS", "GET"],
-      "dest": "/api/health.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.js"
-    }
-  ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Credentials", "value": "true" },
         { "key": "Access-Control-Allow-Origin", "value": "https://kiithub-frontend.vercel.app" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Cookie" }
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
       ]
     }
   ],
-  "env": {
-      "NODE_ENV": "production"
-  }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/dist/index.js" }
+  ]
 }
